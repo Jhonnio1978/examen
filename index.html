@@ -3,289 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jhonnio - Sistema de Evaluación</title>
+    <title>LJPD Estudiantes - Olimpiada de Matemáticas</title>
+    <link rel="stylesheet" href="styles.css">
     <style>
-        :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #3498db;
-            --success-color: #27ae60;
-            --danger-color: #e74c3c;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
         body {
-            font-family: 'Segoe UI', system-ui;
-            line-height: 1.6;
-            background: #f8f9fa;
-            color: var(--primary-color);
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
             padding: 20px;
         }
-
-        .header {
-            text-align: center;
-            padding: 2rem;
-            background: var(--primary-color);
-            color: white;
-            margin-bottom: 2rem;
-            border-radius: 0 0 1rem 1rem;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin: 2rem 0;
-        }
-
-        .card {
+        #container {
             background: white;
-            padding: 1.5rem;
-            border-radius: 0.5rem;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
-            transition: transform 0.3s ease;
-            cursor: pointer;
-            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 600px;
+            margin: auto;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
-
-        .card:hover {
-            transform: translateY(-5px);
+        input {
+            width: 90%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
         }
-
-        .btn {
-            padding: 0.8rem 1.5rem;
+        button {
+            background: #28a745;
+            color: white;
             border: none;
-            border-radius: 0.5rem;
-            font-weight: 600;
+            padding: 10px 15px;
+            border-radius: 5px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            font-size: 16px;
         }
-
-        .btn-primary {
-            background: var(--secondary-color);
-            color: white;
+        button:hover {
+            background: #218838;
         }
-
-        .btn-success {
-            background: var(--success-color);
-            color: white;
+        #preguntas p {
+            font-weight: bold;
         }
-
-        #timer {
-            position: fixed;
-            top: 1rem;
-            right: 1rem;
-            background: var(--danger-color);
-            color: white;
-            padding: 0.8rem 1.2rem;
-            border-radius: 0.5rem;
-            font-weight: 700;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        }
-
-        .question-card {
-            background: white;
-            margin: 1.5rem 0;
-            padding: 1.5rem;
-            border-radius: 0.5rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-
-        .question-number {
-            font-size: 0.9rem;
-            color: #7f8c8d;
-            margin-bottom: 0.5rem;
-        }
-
-        .options-container {
-            margin: 1rem 0;
-        }
-
-        .option-label {
-            display: block;
-            margin: 0.5rem 0;
-            padding: 0.8rem;
-            border: 2px solid #ecf0f1;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .option-label:hover {
-            border-color: var(--secondary-color);
-            background: #f8f9ff;
-        }
-
-        input[type="radio"]:checked + .option-label {
-            border-color: var(--success-color);
-            background: #e8f6ee;
-        }
-
-        .hidden {
-            display: none;
+        #tiempo {
+            font-size: 18px;
+            font-weight: bold;
+            color: red;
         }
     </style>
 </head>
 <body>
-    <header class="header">
-        <h1>Jhonnio Education</h1>
-        <p>Sistema de Evaluación Integral</p>
-    </header>
-
-    <div class="container">
-        <!-- Pantalla principal -->
-        <div id="homeScreen">
-            <div class="grid">
-                <div class="card" onclick="startExam('matematicas')">
-                    <h3>Matemáticas</h3>
-                    <p>50 preguntas - 60 minutos</p>
-                </div>
-                <div class="card" onclick="startExam('ingles')">
-                    <h3>Inglés</h3>
-                    <p>50 preguntas - 45 minutos</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Pantalla de examen -->
-        <div id="examScreen" class="hidden">
-            <div id="questionsContainer"></div>
-            <button class="btn btn-success" onclick="finishExam()">Finalizar Examen</button>
-        </div>
-    </div>
-
-    <div id="timer" class="hidden"></div>
-
-    <script>
-        // Configuración
-        const WHATSAPP_NUMBER = "8293329545";
-        const EXAM_CONFIG = {
-            matematicas: {
-                time: 3600,
-                questions: generateMathQuestions()
-            },
-            ingles: {
-                time: 2700,
-                questions: generateEnglishQuestions()
-            }
-        };
-
-        let currentExam = null;
-        let timer = null;
-
-        // Generador de preguntas
-        function generateMathQuestions() {
-            return Array.from({length: 50}, (_, i) => ({
-                id: i + 1,
-                question: `Problema ${i + 1}: ${getMathQuestion(i)}`,
-                options: generateMathOptions(i),
-                correct: Math.floor(Math.random() * 4)
-            }));
-        }
-
-        function getMathQuestion(index) {
-            const operations = [
-                `Resuelve: 3x + ${5 + index} = ${20 + index}`,
-                `Área de un círculo con radio ${index + 3}cm`,
-                `Simplifica: (${index + 2}a²b³)² / ${index + 1}ab²`
-            ];
-            return operations[index % operations.length];
-        }
-
-        // Sistema de exámenes
-        function startExam(subject) {
-            currentExam = EXAM_CONFIG[subject];
-            document.getElementById('homeScreen').classList.add('hidden');
-            document.getElementById('examScreen').classList.remove('hidden');
-            document.getElementById('timer').classList.remove('hidden');
+    <div id="container">
+        <h1>Bienvenido a LJPD Estudiantes</h1>
+        <h2>Olimpiada de Matemáticas - Primera Etapa</h2>
+        <p>Autor: Jhonnio Saint Fort | Contacto: <a href="https://wa.me/8293329545">829-332-9545</a></p>
+        
+        <div id="registro">
+            <h3>Registro</h3>
+            <label for="nombre">Nombre:</label>
+            <input type="text" id="nombre" required>
             
-            loadQuestions();
-            startTimer();
+            <label for="telefono">Teléfono:</label>
+            <input type="tel" id="telefono" required>
+            
+            <button onclick="iniciarExamen()">Comenzar Examen</button>
+        </div>
+
+        <div id="examen" style="display: none;">
+            <h3>Examen de Matemáticas (1 hora)</h3>
+            <div id="preguntas"></div>
+            <p id="tiempo">Tiempo restante: 60:00</p>
+            <button onclick="finalizarExamen()">Enviar respuestas</button>
+        </div>
+
+        <div id="resultado" style="display: none;"></div>
+    </div>
+    
+    <script>
+        let tiempoRestante = 3600;
+        let temporizador;
+        let preguntas = [
+            "¿Cuál es el área de un triángulo con base 8 cm y altura 5 cm?",
+            "Si un cubo tiene un volumen de 27 cm³, ¿cuánto mide cada lado?",
+            "Resuelve: (3+5)×(2²-1)",
+            "¿Cuántos lados tiene un octágono?",
+            "Un ángulo recto mide ___ grados.",
+            "¿Cuál es la raíz cuadrada de 144?",
+            "Si un tren viaja a 60 km/h, ¿cuánto recorrerá en 2.5 horas?",
+            "El perímetro de un cuadrado es 24 cm, ¿cuánto mide cada lado?",
+            "Si un reloj marca las 3:15, ¿qué ángulo hay entre las manecillas?",
+            "Resuelve: 5! (factorial de 5)."
+        ];
+        
+        function iniciarExamen() {
+            document.getElementById('registro').style.display = 'none';
+            document.getElementById('examen').style.display = 'block';
+            iniciarTemporizador();
+            mostrarPreguntas();
         }
 
-        function loadQuestions() {
-            const container = document.getElementById('questionsContainer');
-            container.innerHTML = currentExam.questions.map((q, i) => `
-                <div class="question-card">
-                    <div class="question-number">Pregunta ${i + 1}</div>
-                    <h4>${q.question}</h4>
-                    <div class="options-container">
-                        ${q.options.map((opt, j) => `
-                            <input type="radio" name="q${i}" id="q${i}o${j}" value="${j}" hidden>
-                            <label class="option-label" for="q${i}o${j}">${opt}</label>
-                        `).join('')}
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        // Temporizador
-        function startTimer() {
-            let seconds = currentExam.time;
-            timer = setInterval(() => {
-                seconds--;
-                const minutes = Math.floor(seconds / 60);
-                const remainingSeconds = seconds % 60;
-                document.getElementById('timer').textContent = 
-                    `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
-                
-                if(seconds <= 0) finishExam();
+        function iniciarTemporizador() {
+            temporizador = setInterval(() => {
+                if (tiempoRestante <= 0) {
+                    finalizarExamen();
+                    return;
+                }
+                tiempoRestante--;
+                let minutos = Math.floor(tiempoRestante / 60);
+                let segundos = tiempoRestante % 60;
+                document.getElementById('tiempo').innerText = `Tiempo restante: ${minutos}:${segundos < 10 ? '0' : ''}${segundos}`;
             }, 1000);
         }
 
-        // Sistema de resultados
-        function calculateResults() {
-            return currentExam.questions.reduce((score, q, i) => {
-                const selected = document.querySelector(`input[name="q${i}"]:checked`);
-                return score + (selected && parseInt(selected.value) === q.correct ? 1 : 0);
-            }, 0);
+        function mostrarPreguntas() {
+            let preguntasDiv = document.getElementById('preguntas');
+            preguntasDiv.innerHTML = '';
+            preguntas.forEach((pregunta, index) => {
+                let preguntaHTML = `<p>${index + 1}. ${pregunta}</p><input type='text' id='respuesta${index}' required>`;
+                preguntasDiv.innerHTML += preguntaHTML;
+            });
         }
 
-        function finishExam() {
-            clearInterval(timer);
-            const score = calculateResults();
-            const percentage = (score / currentExam.questions.length * 100).toFixed(1);
-            
-            const message = encodeURIComponent(
-                `*Resultados de Examen Jhonnio*\n\n` +
-                `Materia: ${document.querySelector('#examScreen h2').textContent}\n` +
-                `Preguntas: ${currentExam.questions.length}\n` +
-                `Correctas: ${score}\n` +
-                `Porcentaje: ${percentage}%`
-            );
-            
-            window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`, '_blank');
-            resetSystem();
-        }
-
-        function resetSystem() {
-            document.getElementById('homeScreen').classList.remove('hidden');
-            document.getElementById('examScreen').classList.add('hidden');
-            document.getElementById('timer').classList.add('hidden');
-        }
-
-        // Generadores de contenido
-        function generateMathOptions(index) {
-            const base = index * 5;
-            return Array.from({length: 4}, (_, i) => (base + (i + 1) * 3));
-        }
-
-        function generateEnglishQuestions() {
-            return Array.from({length: 50}, (_, i) => ({
-                id: i + 1,
-                question: `English Question ${i + 1}: "${['Translate this','Select correct','Find error'][i % 3]}"`,
-                options: ['Option 1', 'Option 2', 'Option 3', 'Option 4'],
-                correct: Math.floor(Math.random() * 4)
-            }));
+        function finalizarExamen() {
+            clearInterval(temporizador);
+            let nombre = document.getElementById('nombre').value;
+            let telefono = document.getElementById('telefono').value;
+            let enlaceWhatsApp = `https://wa.me/8293329545?text=Resultados%20de%20${nombre}%20(${telefono})`;
+            document.getElementById('examen').style.display = 'none';
+            document.getElementById('resultado').style.display = 'block';
+            document.getElementById('resultado').innerHTML = `<p>Examen finalizado. Envía tus respuestas:</p><a href='${enlaceWhatsApp}' target='_blank'>Enviar por WhatsApp</a>`;
         }
     </script>
 </body>
